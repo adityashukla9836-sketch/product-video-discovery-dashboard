@@ -1,4 +1,28 @@
-const DEFAULT_THRESHOLD = 60;
+const DEFAULT_THRESHOLD = 45;
+
+function getDecision(score) {
+    if (score >= 75) {
+        return "match";
+    }
+
+    if (score >= 45) {
+        return "possible";
+    }
+
+    return "reject";
+}
+
+function getReason(score) {
+    if (score >= 75) {
+        return "Strong visual similarity with the target product.";
+    }
+
+    if (score >= 45) {
+        return "Possible visual similarity with the target product.";
+    }
+
+    return "Low visual similarity with the target product.";
+}
 
 function filterAndRankVideos(videos, options = {}) {
     const threshold =
@@ -9,51 +33,94 @@ function filterAndRankVideos(videos, options = {}) {
 
     const scored = videos.filter(
         video =>
-            typeof video.matchScore === "number"
+            typeof video.matchScore === "number" &&
+            Number.isFinite(video.matchScore)
     );
 
-    const usable = scored.filter(
-        video =>
-            video.matchScore >= threshold &&
-            video.decision !== "error"
-    );
+    // Keep all scored candidates available for ranking.
+    // Quality is represented separately by decision.
+    const ranked = [...scored]
+        .map(video => {
+            const score = Number(video.matchScore);
 
-    const rejected = scored.filter(
-        video =>
-            video.matchScore < threshold ||
-            video.decision === "error"
-    );
+            return {
+                ...video,
+                decision: getDecision(score),
+                matchReason: getReason(score)
+            };
+        })
+        .sort(
+            (a, b) =>
+                b.matchScore - a.matchScore
+        );
 
-    const ranked = [...usable].sort(
-        (a, b) =>
-            b.matchScore - a.matchScore
-    );
-
+    // Return the best candidates up to the requested target.
     const finalResults =
-        ranked.slice(0, target).map(video => ({
-            ...video,
-            matchReason:
+        ranked.slice(0, target);
+
+    const aboveThreshold =
+        scored.filter(
+            video =>
+                video.matchScore >= threshold
+        ).length;
+
+    const matches =
+        scored.filter(
+            video =>
                 video.matchScore >= 75
-                    ? "Strong visual similarity with the target product."
-                    : "Possible visual similarity with the target product."
-        }));
+        ).length;
+
+    const possible =
+        scored.filter(
+            video =>
+                video.matchScore >= 45 &&
+                video.matchScore < 75
+        ).length;
+
+    const rejected =
+        scored.filter(
+            video =>
+                video.matchScore < 45
+        ).length;
 
     return {
         results: finalResults,
-        rejected,
+
+        rejected: ranked.filter(
+            video =>
+                video.matchScore < 45
+        ),
+
         stats: {
             candidates: videos.length,
             scored: scored.length,
-            usable: usable.length,
-            rejected: rejected.length,
+
+            aboveThreshold,
+
+            matches,
+            possible,
+            rejected,
+
             target,
-            returned: finalResults.length,
+
+            returned:
+                finalResults.length,
+
+            shortfall:
+                Math.max(
+                    0,
+                    target - finalResults.length
+                ),
+
             threshold
         }
     };
 }
 
-function prepareUnscoredResults(videos, target = 20) {
+function prepareUnscoredResults(
+    videos,
+    target = 20
+) {
     return videos
         .slice(0, target)
         .map(video => ({

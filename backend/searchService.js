@@ -2,6 +2,7 @@ const { extractProduct } = require("./productExtractor");
 const { analyzeProductImage } = require("./geminiAnalyzer");
 const { generateSearchQueries } = require("./queryGenerator");
 const { collectVideos } = require("./videoCollector");
+const { searchMetaVideoAds } = require("./metaCollector");
 const { matchVideos } = require("./videoMatcher");
 
 const {
@@ -205,15 +206,45 @@ async function runSearch(input, onProgress = () => {}) {
     });
 
     if (analysis) {
-        const generated =
-            await generateSearchQueries(
-                analysis
-            );
+       const generated =
+    await generateSearchQueries(
+        analysis
+    );
 
-        queries = uniqueStrings([
-            searchTerm,
-            ...(generated.queries || [])
-        ]);
+const productType =
+    analysis.productType ||
+    searchTerm;
+
+const colors =
+    analysis.colors || [];
+
+const broadQueries = [
+    productType,
+
+    `${productType} for men`,
+
+    `${productType} fashion`,
+
+    `${productType} outfit`,
+
+    `${productType} styling`,
+
+    ...colors.map(
+        color => `${color} ${productType}`
+    ),
+
+    ...colors.map(
+        color => `${color} ${productType} for men`
+    )
+];
+
+queries = uniqueStrings([
+    searchTerm,
+
+    ...(generated.queries || []),
+
+    ...broadQueries
+]);
     } else {
         queries = [searchTerm];
     }
@@ -289,13 +320,92 @@ async function runSearch(input, onProgress = () => {}) {
                 roundQueries,
                 {
                     instagramTarget: 30,
-                    metaTarget: 30,
+                    metaTarget: 40,
 
                     instagramPages: 2,
-                    metaMaxResults: 30
+                    metaMaxResults: 40
                 }
             );
+// --------------------------------------------------
+// META FALLBACK SEARCH
+// --------------------------------------------------
 
+if (product?.image && collected.meta.length < 20) {
+    onProgress({
+        step: "meta_fallback",
+        message:
+            "Meta returned too few candidates. Running broader fallback searches..."
+    });
+
+    const productType =
+        analysis?.productType ||
+        searchTerm;
+
+    const firstColor =
+        analysis?.colors?.[0] || "";
+
+    const fallbackQueries = uniqueStrings([
+        productType,
+        `${productType} for men`,
+        `${firstColor} ${productType}`,
+        "shirt",
+        "mens shirt"
+    ]);
+
+    for (const fallbackQuery of fallbackQueries) {
+
+        if (collected.meta.length >= 30) {
+            break;
+        }
+
+        try {
+            console.log(
+                `Meta fallback search: "${fallbackQuery}"`
+            );
+
+            const extraMeta =
+                await searchMetaVideoAds(
+                    fallbackQuery,
+                    {
+                        maxResults: 40
+                    }
+                );
+
+            const existingKeys =
+                new Set(
+                    collected.meta.map(video =>
+                        getVideoKey(video)
+                    )
+                );
+
+            for (const video of extraMeta) {
+                const key =
+                    getVideoKey(video);
+
+                if (!existingKeys.has(key)) {
+                    collected.meta.push(video);
+                    existingKeys.add(key);
+                }
+            }
+
+            console.log(
+                `Meta candidates after "${fallbackQuery}": ${collected.meta.length}`
+            );
+
+        } catch (error) {
+            sourceErrors.push({
+                platform: "meta",
+                query: fallbackQuery,
+                error: error.message
+            });
+
+            console.error(
+                `Meta fallback failed for "${fallbackQuery}":`,
+                error.message
+            );
+        }
+    }
+}
         sourceErrors.push(
             ...(collected.sourceErrors || [])
         );
@@ -454,7 +564,7 @@ async function runSearch(input, onProgress = () => {}) {
                 ? filterAndRankVideos(
                     allInstagramMatches,
                     {
-                        threshold: 60,
+                        threshold: 45,
                         target: 20
                     }
                 )

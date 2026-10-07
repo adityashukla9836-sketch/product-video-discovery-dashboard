@@ -68,13 +68,13 @@ function convertSimilarityToScore(similarity) {
 }
 
 function getDecision(matchScore) {
-    if (matchScore >= 75) {
-        return "match";
-    }
+   if (matchScore >= 75) {
+    return "match";
+}
 
-    if (matchScore >= 60) {
-        return "possible";
-    }
+if (matchScore >= 45) {
+    return "possible";
+}
 
     return "reject";
 }

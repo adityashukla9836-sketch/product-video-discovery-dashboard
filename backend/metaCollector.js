@@ -10,7 +10,7 @@ async function searchMetaVideoAds(query, options = {}) {
 
     const input = {
         searchTerms: [query],
-        countries: [country],
+        countries: ["IN", "US"],
         adStatus: "all",
         mediaTypes: ["video"],
         maxResults

@@ -1,45 +1,118 @@
 const { GoogleGenAI } = require("@google/genai");
 
+async function downloadImage(imageUrl) {
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+        throw new Error(
+            `Failed to download product image: ${response.status} ${response.statusText}`
+        );
+    }
+
+    const buffer = Buffer.from(
+        await response.arrayBuffer()
+    );
+
+    return {
+        data: buffer.toString("base64"),
+        mimeType:
+            response.headers.get("content-type") ||
+            "image/jpeg"
+    };
+}
+
+function isDailyQuotaError(errorText) {
+    return (
+        errorText.includes("GenerateRequestsPerDay") ||
+        errorText.includes("quotaValue") ||
+        errorText.includes("quota exceeded")
+    );
+}
+
+function isTemporaryError(errorText) {
+    return (
+        errorText.includes("503") ||
+        errorText.includes("UNAVAILABLE") ||
+        errorText.includes("500") ||
+        errorText.includes("INTERNAL")
+    );
+}
+
+async function generateWithRetry(ai, contents) {
+    const maxRetries = 3;
+
+    for (
+        let attempt = 1;
+        attempt <= maxRetries + 1;
+        attempt++
+    ) {
+        try {
+            console.log(
+                `Gemini attempt ${attempt}/${maxRetries + 1}...`
+            );
+
+            return await ai.models.generateContent({
+                model:
+                    process.env.GEMINI_MODEL ||
+                    "gemini-3.8-flash",
+
+                contents,
+
+                config: {
+                    responseMimeType:
+                        "application/json"
+                }
+            });
+
+        } catch (error) {
+            const errorText =
+                error?.message ||
+                String(error);
+
+            // Daily quota cannot be fixed by retrying.
+            if (isDailyQuotaError(errorText)) {
+                throw new Error(
+                    "Gemini daily quota is exhausted. Please wait for the quota reset."
+                );
+            }
+
+            if (
+                !isTemporaryError(errorText) ||
+                attempt === maxRetries + 1
+            ) {
+                throw error;
+            }
+
+            const waitTime =
+                2000 *
+                Math.pow(2, attempt - 1);
+
+            console.log(
+                `Gemini temporarily unavailable. Retrying in ${waitTime / 1000} seconds...`
+            );
+
+            await new Promise(resolve =>
+                setTimeout(
+                    resolve,
+                    waitTime
+                )
+            );
+        }
+    }
+}
+
 async function analyzeProductImage(imageUrl) {
     const ai = new GoogleGenAI({
         apiKey: process.env.GEMINI_API_KEY
     });
 
-    // Download the product image
-    const imageResponse = await fetch(imageUrl);
-
-    if (!imageResponse.ok) {
-        throw new Error(
-            `Could not download image. Status: ${imageResponse.status}`
-        );
-    }
-
-    const imageBuffer = Buffer.from(
-        await imageResponse.arrayBuffer()
-    );
-
-    const mimeType =
-        imageResponse.headers.get("content-type") || "image/jpeg";
-
-    const base64Image = imageBuffer.toString("base64");
+    const image =
+        await downloadImage(imageUrl);
 
     const prompt = `
-Analyze the product shown in this image.
+Analyze the product image carefully.
 
-Identify:
-- product type
-- colors
-- prints or graphics
-- logos
-- visible text
-- material, only if reasonably inferable
-- shape or fit
-
-Return ONLY valid JSON.
-
-Do not invent information that cannot reasonably be seen.
-
-Use exactly this JSON structure:
+Return ONLY valid JSON with exactly these fields:
 
 {
   "productType": "",
@@ -50,45 +123,69 @@ Use exactly this JSON structure:
   "material": "",
   "shape": ""
 }
+
+Identify:
+
+- product type
+- visible colors
+- prints, graphics or patterns
+- logos or branding
+- visible text
+- apparent material
+- shape, fit or construction
+
+Use empty arrays when nothing is visible.
+Use an empty string when a property cannot be determined.
+Do not invent details.
 `;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+    const response =
+        await generateWithRetry(
+            ai,
+            [
+                {
+                    role: "user",
 
-        contents: [
-            {
-                role: "user",
-                parts: [
-                    {
-                        text: prompt
-                    },
-                    {
-                        inlineData: {
-                            mimeType: mimeType,
-                            data: base64Image
+                    parts: [
+                        {
+                            text: prompt
+                        },
+
+                        {
+                            inlineData: {
+                                mimeType:
+                                    image.mimeType,
+                                data:
+                                    image.data
+                            }
                         }
-                    }
-                ]
-            }
-        ],
+                    ]
+                }
+            ]
+        );
 
-        config: {
-            responseMimeType: "application/json"
-        }
-    });
+    let responseText =
+        response.text.trim();
 
-    let resultText = response.text.trim();
+    responseText = responseText
+        .replace(
+            /^```json\s*/i,
+            ""
+        )
+        .replace(
+            /^```\s*/i,
+            ""
+        )
+        .replace(
+            /\s*```$/i,
+            ""
+        )
+        .trim();
 
-    // Remove Markdown code fences if Gemini returns them
-    if (resultText.startsWith("```")) {
-        resultText = resultText
-            .replace(/^```json\s*/i, "")
-            .replace(/^```\s*/i, "")
-            .replace(/\s*```$/i, "")
-            .trim();
-    }
+    const result =
+        JSON.parse(responseText);
 
-    return JSON.parse(resultText);
+    return result;
 }
 
 module.exports = {

@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-10-07T22:20:05.345Z",
+  "totalProducts": 5,
+  "successfulTests": 5,
+  "failedTests": 0,
+  "results": [
+    {
+      "testNumber": 1,
+      "inputName": "Red Regular Fit Shirt",
+      "inputUrl": "https://www.jackjones.in/products/901900801-red-regular-fit-shirt",
+      "extractedTitle": "Red Regular Fit Shirt",
+      "extractedDescription": "The JACK&amp;JONES Red Regular Fit Shirt is your go-to for effortless style with a bold pop of colour. Tailored for a regular fit, this shirt lets you breathe easy while keeping your look sharp. Pair it with anything—from casual denim to chinos—for that “I just threw this on and look great” vibe. Perfect for both laid-",
+      "productImage": "http://www.jackjones.in/cdn/shop/files/901900801_g0_64ebfe4f-be35-4414-8f8d-47719e189bf1.jpg?v=1750838837&width=2048",
+      "analysis": {
+        "productType": "shirt",
+        "colors": [
+          "dusty rose",
+          "white"
+        ],
+        "graphics": [
+          "micro-pattern"
+        ],
+        "logos": [],
+        "text": [],
+        "material": "textured woven fabric",
+        "shape": "regular fit"
+      },
+      "status": "success"
+    },
+    {
+      "testNumber": 2,
+      "inputName": "Black Solid Shirt",
+      "inputUrl": "https://www.jackjones.in/products/12143999-black",
+      "extractedTitle": "Black Solid Shirt",
+      "extractedDescription": "Black Solid Shirt",
+      "productImage": "http://www.jackjones.in/cdn/shop/files/12143999-Black_1.jpg?v=1745409157&width=2048",
+      "analysis": {
+        "productType": "shirt",
+        "colors": [
+          "black",
+          "white"
+        ],
+        "graphics": [],
+        "logos": [],
+        "text": [],
+        "material": "",
+        "shape": "slim fit"
+      },
+      "status": "success"
+    },
+    {
+      "testNumber": 3,
+      "inputName": "Solid Jeans",
+      "inputUrl": "https://www.jackjones.in/products/12126224-black",
+      "extractedTitle": "Solid Jeans",
+      "extractedDescription": "Jack &amp; Jones brings you this casual slim-fit denim in black. It is low-rise and it will take you from game nights to date nights effortlessly. Style this with a slim shirt and plimsolls.",
+      "productImage": "http://www.jackjones.in/cdn/shop/files/12126224-Black_1.jpg?v=1745402765&width=2048",
+      "analysis": {
+        "productType": "jeans",
+        "colors": [
+          "black",
+          "dark grey"
+        ],
+        "graphics": [
+          "tonal camouflage print"
+        ],
+        "logos": [],
+        "text": [],
+        "material": "denim",
+        "shape": "slim fit"
+      },
+      "status": "success"
+    },
+    {
+      "testNumber": 4,
+      "inputName": "Black Colourblocked Hooded Jacket",
+      "inputUrl": "https://www.jackjones.in/products/160210501-black",
+      "extractedTitle": "Black Colourblocked Hooded Jacket",
+      "productImage": "http://www.jackjones.in/cdn/shop/files/160210501_g0.jpg?v=1745421273&width=2048",
+      "analysis": {
+        "productType": "jacket",
+        "colors": [
+          "black"
+        ],
+        "graphics": [
+          "horizontal quilting"
+        ],
+        "logos": [],
+        "text": [],
+        "material": "polyester",
+        "shape": "hooded regular fit jacket with zip-up front and quilted chest panels"
+      },
+      "status": "success"
+    },
+    {
+      "testNumber": 5,
+      "inputName": "Check Shirt",
+      "inputUrl": "https://www.jackjones.in/products/12125661-burnthenna",
+      "extractedTitle": "Check Shirt",
+      "extractedDescription": "Get your fix of chequered shirt from Jack &amp; Jones. This multi-functional shirt is apt for light-layering and sets your style scene. Pair it with denims and canvas shoes to finish this look.",
+      "productImage": "http://www.jackjones.in/cdn/shop/files/12125661-BurntHenna_1.jpg?v=1745402093&width=2048",
+      "analysis": {
+        "productType": "shirt",
+        "colors": [
+          "orange",
+          "white",
+          "navy blue"
+        ],
+        "graphics": [
+          "plaid",
+          "check pattern"
+        ],
+        "logos": [],
+        "text": [],
+        "material": "cotton",
+        "shape": "regular fit, long sleeve"
+      },
+      "status": "success"
+    }
+  ]
+}

@@ -3,24 +3,28 @@ require("dotenv").config();
 const { searchMetaVideoAds } = require("./metaCollector");
 
 async function main() {
-    const query = "red shirt";
+    const query = "shirt";
 
-    console.log(`Searching Meta Ad Library for: ${query}`);
+    console.log(`Testing Meta search: "${query}"`);
 
-    const ads = await searchMetaVideoAds(query);
+    const videos = await searchMetaVideoAds(query, {
+        maxResults: 20
+    });
 
-    console.log(`Video ads returned: ${ads.length}`);
+    console.log("\nTotal Meta video results:", videos.length);
 
-    if (ads.length === 0) {
-        console.log("No video ads returned.");
-        return;
-    }
-
-    console.log("\nFirst normalized result:\n");
-    console.log(JSON.stringify(ads[0], null, 2));
+    videos.slice(0, 10).forEach((video, index) => {
+        console.log(`\nVideo ${index + 1}`);
+        console.log("ID:", video.videoId);
+        console.log("Video URL:", video.videoUrl);
+        console.log("Thumbnail:", video.thumbnail);
+        console.log("Caption:", video.caption);
+        console.log("Advertiser:", video.advertiser);
+        console.log("Ads Library:", video.adLibraryUrl);
+    });
 }
 
-main().catch((error) => {
-    console.error("Meta search error:");
-    console.error(error);
+main().catch(error => {
+    console.error("\nMeta test failed:");
+    console.error(error.message);
 });
