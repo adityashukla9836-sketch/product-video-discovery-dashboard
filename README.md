@@ -245,8 +245,8 @@ Current decision thresholds:
 
 ```text
 75–100  → match
-60–74   → possible
-0–59    → reject
+45–74   → possible
+0–44    → reject
 ```
 
 The score is used for ranking and filtering. It is a similarity score, not a statistical probability of exact identity.
