@@ -1,5 +1,11 @@
 const { GoogleGenAI } = require("@google/genai");
 
+// --------------------------------------------------
+// Product-analysis cache (change #4)
+// Keyed by image URL. Lives for the process lifetime.
+// --------------------------------------------------
+const analysisCache = new Map();
+
 async function downloadImage(imageUrl) {
     const response = await fetch(imageUrl);
 
@@ -102,6 +108,14 @@ async function generateWithRetry(ai, contents) {
 }
 
 async function analyzeProductImage(imageUrl) {
+    // --------------------------------------------------
+    // Return cached result if available (change #4)
+    // --------------------------------------------------
+    if (analysisCache.has(imageUrl)) {
+        console.log("Using cached product analysis...");
+        return analysisCache.get(imageUrl);
+    }
+
     const ai = new GoogleGenAI({
         apiKey: process.env.GEMINI_API_KEY
     });
@@ -184,6 +198,9 @@ Do not invent details.
 
     const result =
         JSON.parse(responseText);
+
+    // Cache for this process lifetime (change #4)
+    analysisCache.set(imageUrl, result);
 
     return result;
 }

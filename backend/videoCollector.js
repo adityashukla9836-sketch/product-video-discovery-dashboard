@@ -1,6 +1,72 @@
 const { searchInstagramReels } = require("./instagramCollector");
 const { searchMetaVideoAds } = require("./metaCollector");
 
+// --------------------------------------------------
+// Timeout / retry helpers (change #5)
+// --------------------------------------------------
+
+/**
+ * Wraps a promise with a hard timeout.
+ * @param {Promise} promise
+ * @param {number}  ms
+ * @param {string}  label  – used in the timeout error message
+ */
+function withTimeout(promise, ms, label = "operation") {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(
+                new Error(
+                    `${label} timed out after ${ms / 1000}s`
+                )
+            );
+        }, ms);
+
+        promise.then(
+            result => {
+                clearTimeout(timer);
+                resolve(result);
+            },
+            err => {
+                clearTimeout(timer);
+                reject(err);
+            }
+        );
+    });
+}
+
+/**
+ * Retries an async factory function on failure.
+ * @param {() => Promise}  fn
+ * @param {number}         maxAttempts
+ * @param {number}         baseDelayMs
+ */
+async function withRetry(fn, maxAttempts = 2, baseDelayMs = 1500) {
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            if (attempt < maxAttempts) {
+                const delay = baseDelayMs * Math.pow(2, attempt - 1);
+                console.warn(
+                    `Attempt ${attempt}/${maxAttempts} failed (${error.message}). ` +
+                    `Retrying in ${delay / 1000}s...`
+                );
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
+    }
+
+    throw lastError;
+}
+
+// Timeout limits for each source (ms)
+const INSTAGRAM_TIMEOUT_MS = 120_000; // 2 min – Apify actors can be slow
+const META_TIMEOUT_MS      = 120_000;
+
+
 function uniqueVideos(videos) {
     const seen = new Set();
     const result = [];
@@ -54,13 +120,29 @@ async function collectVideos(queries, options = {}) {
 
         const [instagramResult, metaResult] =
             await Promise.allSettled([
-                searchInstagramReels(query, {
-                    maxPages: instagramPages
-                }),
+                // Instagram – timeout + 1 retry (change #5)
+                withRetry(
+                    () => withTimeout(
+                        searchInstagramReels(query, {
+                            maxPages: instagramPages
+                        }),
+                        INSTAGRAM_TIMEOUT_MS,
+                        `Instagram search "${query}"`
+                    ),
+                    2
+                ),
 
-                searchMetaVideoAds(query, {
-                    maxResults: metaMaxResults
-                })
+                // Meta – timeout + 1 retry (change #5)
+                withRetry(
+                    () => withTimeout(
+                        searchMetaVideoAds(query, {
+                            maxResults: metaMaxResults
+                        }),
+                        META_TIMEOUT_MS,
+                        `Meta search "${query}"`
+                    ),
+                    2
+                )
             ]);
 
         if (instagramResult.status === "fulfilled") {

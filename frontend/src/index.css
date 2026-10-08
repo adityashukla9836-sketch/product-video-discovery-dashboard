@@ -192,6 +192,53 @@ button {
   line-height: 1.55;
 }
 
+/* AI-detected attributes panel (change #1) */
+.analysis-section {
+  margin-top: 4px;
+}
+
+.analysis-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.attr-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.attr-label {
+  flex-shrink: 0;
+  width: 90px;
+  font-weight: 700;
+  color: #7a8791;
+  font-size: 12px;
+  padding-top: 3px;
+}
+
+.attr-value {
+  color: #2a3840;
+  font-size: 13px;
+}
+
+.attr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.attr-chip {
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: #edf1f3;
+  color: #354550;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .progress-panel {
   margin-top: 20px;
   padding: 20px;

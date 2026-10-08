@@ -347,6 +347,94 @@ function App() {
                   "Product description unavailable."}
               </p>
 
+              {/* Gemini-detected attributes (change #1) */}
+              {search.result.analysis && (
+                <div className="analysis-section">
+                  <div className="section-label" style={{ marginTop: 14 }}>
+                    AI-Detected Attributes
+                  </div>
+
+                  <div className="analysis-grid">
+
+                    {search.result.analysis.productType && (
+                      <div className="attr-row">
+                        <span className="attr-label">Type</span>
+                        <span className="attr-value">
+                          {search.result.analysis.productType}
+                        </span>
+                      </div>
+                    )}
+
+                    {Array.isArray(search.result.analysis.colors) &&
+                      search.result.analysis.colors.length > 0 && (
+                      <div className="attr-row">
+                        <span className="attr-label">Colors</span>
+                        <div className="attr-chips">
+                          {search.result.analysis.colors.map((c, i) => (
+                            <span className="attr-chip" key={i}>{c}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(search.result.analysis.graphics) &&
+                      search.result.analysis.graphics.length > 0 && (
+                      <div className="attr-row">
+                        <span className="attr-label">Graphics</span>
+                        <div className="attr-chips">
+                          {search.result.analysis.graphics.map((g, i) => (
+                            <span className="attr-chip" key={i}>{g}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(search.result.analysis.logos) &&
+                      search.result.analysis.logos.length > 0 && (
+                      <div className="attr-row">
+                        <span className="attr-label">Logos</span>
+                        <div className="attr-chips">
+                          {search.result.analysis.logos.map((l, i) => (
+                            <span className="attr-chip" key={i}>{l}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(search.result.analysis.text) &&
+                      search.result.analysis.text.length > 0 && (
+                      <div className="attr-row">
+                        <span className="attr-label">Visible Text</span>
+                        <div className="attr-chips">
+                          {search.result.analysis.text.map((t, i) => (
+                            <span className="attr-chip" key={i}>{t}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {search.result.analysis.material && (
+                      <div className="attr-row">
+                        <span className="attr-label">Material</span>
+                        <span className="attr-value">
+                          {search.result.analysis.material}
+                        </span>
+                      </div>
+                    )}
+
+                    {search.result.analysis.shape && (
+                      <div className="attr-row">
+                        <span className="attr-label">Shape / Fit</span>
+                        <span className="attr-value">
+                          {search.result.analysis.shape}
+                        </span>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              )}
+
             </div>
 
           </section>

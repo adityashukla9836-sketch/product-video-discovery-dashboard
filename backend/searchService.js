@@ -565,7 +565,8 @@ if (product?.image && collected.meta.length < 20) {
                     allInstagramMatches,
                     {
                         threshold: 45,
-                        target: 20
+                        target: 20,
+                        analysis   // pass Gemini attrs for evidence (change #2)
                     }
                 )
                 : {
@@ -592,7 +593,8 @@ if (product?.image && collected.meta.length < 20) {
                     allMetaMatches,
                     {
                         threshold: 60,
-                        target: 20
+                        target: 20,
+                        analysis   // pass Gemini attrs for evidence (change #2)
                     }
                 )
                 : {
@@ -662,7 +664,8 @@ if (product?.image && collected.meta.length < 20) {
                 allInstagramMatches,
                 {
                     threshold: 60,
-                    target: 20
+                    target: 20,
+                    analysis
                 }
             ).results
             : allInstagramMatches.slice(0, 20);
@@ -673,7 +676,8 @@ if (product?.image && collected.meta.length < 20) {
                 allMetaMatches,
                 {
                     threshold: 60,
-                    target: 20
+                    target: 20,
+                    analysis
                 }
             ).results
             : allMetaMatches.slice(0, 20);
